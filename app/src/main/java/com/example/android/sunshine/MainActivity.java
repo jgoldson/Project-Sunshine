@@ -16,31 +16,35 @@
 package com.example.android.sunshine;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.example.android.sunshine.ForecastAdapter.ForecastAdapterOnClickHandler;
 import com.example.android.sunshine.data.SunshinePreferences;
 import com.example.android.sunshine.utilities.NetworkUtils;
 import com.example.android.sunshine.utilities.OpenWeatherJsonUtils;
 
 import java.net.URL;
 
-// TODO (8) Implement ForecastAdapterOnClickHandler from the MainActivity
-public class MainActivity extends AppCompatActivity implements ForecastAdapter.ForecastAdapterOnClickHandler {
+public class MainActivity extends AppCompatActivity implements ForecastAdapterOnClickHandler {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     private RecyclerView mRecyclerView;
     private ForecastAdapter mForecastAdapter;
-    private Toast mToast;
+
     private TextView mErrorMessageDisplay;
 
     private ProgressBar mLoadingIndicator;
@@ -75,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
          */
         mRecyclerView.setHasFixedSize(true);
 
-        // TODO (11) Pass in 'this' as the ForecastAdapterOnClickHandler
         /*
          * The ForecastAdapter is responsible for linking our weather data with the Views that
          * will end up displaying our weather data.
@@ -109,19 +112,20 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
         new FetchWeatherTask().execute(location);
     }
 
-    // TODO (9) Override ForecastAdapterOnClickHandler's onClick method
-
+    /**
+     * This method is overridden by our MainActivity class in order to handle RecyclerView item
+     * clicks.
+     *
+     * @param weatherForDay The weather for the day that was clicked
+     */
     @Override
     public void onClick(String weatherForDay) {
-        if (mToast != null) {
-            mToast.cancel();
-        }
-        mToast = Toast.makeText(this, weatherForDay, Toast.LENGTH_SHORT);
-        mToast.show();
+        Context context = this;
+        Class destinationClass = DetailActivity.class;
+        Intent intentToStartDetailActivity = new Intent(context, destinationClass);
+        intentToStartDetailActivity.putExtra(Intent.EXTRA_TEXT, weatherForDay);
+        startActivity(intentToStartDetailActivity);
     }
-
-
-    // TODO (10) Show a Toast when an item is clicked, displaying that item's weather data
 
     /**
      * This method will make the View for the weather data visible and
@@ -196,6 +200,17 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
             }
         }
     }
+    private void openLocationInMap() {
+        String addressString = "NYC, NY";
+        Uri geoLocation = Uri.parse("geo:0,0?q=" + addressString);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+            }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -207,6 +222,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -217,6 +233,11 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
             return true;
         }
 
+        // TODO (2) Launch the map when the map menu item is clicked
+        if (id == R.id.action_map) {
+            openLocationInMap();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 }
